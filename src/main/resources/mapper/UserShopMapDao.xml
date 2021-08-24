@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zxc.o2o.dao.UserShopMapDao">
+    <resultMap id="userShopResultMap" type="com.zxc.o2o.entity.UserShopMap">
+        <id column="user_shop_id" property="userShopId" />
+        <result column="create_time" property="createTime" />
+        <result column="point" property="point" />
+        <association property="user" column="user_id"
+                     javaType="com.zxc.o2o.entity.PersonInfo">
+            <id column="user_id" property="userId" />
+            <result column="name" property="name" />
+        </association>
+        <association property="shop" column="shop_id"
+                     javaType="com.zxc.o2o.entity.Shop">
+            <id column="shop_id" property="shopId" />
+            <result column="shop_name" property="shopName" />
+        </association>
+    </resultMap>
+    <select id="queryUserShopMapList" resultMap="userShopResultMap">
+        SELECT
+        tusm.user_shop_id,
+        tusm.create_time,
+        tusm.point,
+        buyer.user_id,
+        buyer.name,
+        ts.shop_id,
+        ts.shop_name
+        FROM
+        tb_user_shop_map tusm,
+        tb_person_info buyer,
+        tb_shop ts
+        <where>
+            tusm.user_id = buyer.user_id
+            and
+            tusm.shop_id = ts.shop_id
+            <if test="userShopCondition.user!=null and userShopCondition.user.userId!=null">
+                and tusm.user_id = #{userShopCondition.user.userId}
+            </if>
+            <if test="userShopCondition.shop != null and userShopCondition.shop.shopId!=null">
+                and tusm.shop_id = #{userShopCondition.shop.shopId}
+            </if>
+            <!-- 写like语句的时候 一般都会写成 like '% %' 在mybatis里面写就是应该是 like '%${name} %' 而不是 
+                '%#{name} %' ${name} 是不带单引号的，而#{name} 是带单引号的 -->
+            <if test="userShopCondition.user!=null and userShopCondition.user.name != null">
+                and buyer.name like '%${userShopCondition.user.name}%'
+            </if>
+            <if test="userShopCondition.shop != null and userShopCondition.shop.shopName!=null ">
+                and ts.shop_name like '%${userShopCondition.shop.shopName}%'
+            </if>
+            <if test="userShopCondition.createTime!=null">
+                and tusm.create_time > #{userShopCondition.createTime}
+            </if>
+        </where>
+        LIMIT #{rowIndex},#{pageSize};
+    </select>
+    <select id="queryUserShopMapCount" resultType="int">
+        SELECT
+        count(1)
+        FROM
+        tb_user_shop_map tusm,
+        tb_person_info buyer,
+        tb_shop ts
+        <where>
+        tusm.user_id = buyer.user_id
+        and
+        tusm.shop_id = ts.shop_id
+            <if test="userShopCondition.user!=null and userShopCondition.user.userId!=null">
+                and tusm.user_id = #{userShopCondition.user.userId}
+            </if>
+            <if test="userShopCondition.shop != null and userShopCondition.shop.shopId!=null">
+                and tusm.shop_id = #{userShopCondition.shop.shopId}
+            </if>
+            <!-- 写like语句的时候 一般都会写成 like '% %' 在mybatis里面写就是应该是 like '%${name} %' 而不是
+                '%#{name} %' ${name} 是不带单引号的，而#{name} 是带单引号的 -->
+            <if test="userShopCondition.user!=null and userShopCondition.user.name != null">
+                and buyer.name like '%${userShopCondition.user.name}%'
+            </if>
+            <if test="userShopCondition.shop != null and userShopCondition.shop.shopName!=null ">
+                and ts.shop_name like '%${userShopCondition.shop.shopName}%'
+            </if>
+            <if test="userShopCondition.createTime!=null">
+                and tusm.create_time > #{userShopCondition.createTime}
+            </if>
+        </where>
+    </select>
+
+    <select id="queryUserShopMap" resultMap="userShopResultMap"
+            parameterType="long">
+		SELECT
+        tusm.user_shop_id,
+        tusm.create_time,
+        tusm.point,
+        buyer.user_id,
+        buyer.name,
+        ts.shop_id,
+        ts.shop_name
+        FROM
+        tb_user_shop_map tusm,
+        tb_person_info buyer,
+        tb_shop ts
+        where
+        tusm.user_id = buyer.user_id
+        and
+        tusm.shop_id = ts.shop_id
+        and tusm.shop_id = #{shopId}
+        and tusm.user_id = #{userId}
+	</select>
+
+    <insert id="insertUserShopMap" parameterType="com.zxc.o2o.entity.UserShopMap"
+            useGeneratedKeys="true" keyProperty="userShopId" keyColumn="user_shop_id">
+		INSERT
+		INTO
+		tb_user_shop_map(user_id,shop_id,create_time,point)
+		VALUES
+		(#{user.userId},#{shop.shopId},#{createTime},#{point})
+	</insert>
+
+    <update id="updateUserShopMapPoint" parameterType="com.zxc.o2o.entity.UserShopMap"
+            keyProperty="user_shop_id" useGeneratedKeys="true">
+		UPDATE tb_user_shop_map
+		SET point=#{point}
+		where user_id = #{user.userId}
+		AND shop_id = #{shop.shopId}
+	</update>
+</mapper>

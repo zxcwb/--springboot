@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zxc.o2o.dao.WechatAuthDao">
+
+    <resultMap id="wechatAuthResultMap" type="com.zxc.o2o.entity.WechatAuth">
+        <id property="wechatAuthId" column="wechat_auth_id"/>
+        <result property="openId" column="open_id"/>
+        <result property="createTime" column="create_time"/>
+        <association property="personInfo" column="user_id"
+                     javaType="com.zxc.o2o.entity.PersonInfo">
+            <id column="user_id" property="userId"/>
+            <result column="name" property="name"/>
+            <result column="gender" property="gender"/>
+            <result column="email" property="email"/>
+            <result column="profile_img" property="profileImg"/>
+            <result column="user_type" property="userType"/>
+            <result column="create_time" property="createTime"/>
+            <result column="last_create_time" property="lastEditTime"/>
+            <result column="enable_status" property="enableStatus"/>
+        </association>
+    </resultMap>
+
+    <select id="queryWechatInfoByOpenId" resultMap="wechatAuthResultMap">
+        select twa.wechat_auth_id,twa.open_id,twa.create_time,
+        tpi.user_id,
+        tpi.name,
+        tpi.gender,
+        tpi.email,
+        tpi.profile_img,
+        tpi.user_type,
+        tpi.create_time,
+        tpi.last_edit_time,
+        tpi.enable_status
+        from tb_wechat_auth twa
+        left join
+        tb_person_info tpi
+        on twa.user_id = tpi.user_id
+        where
+        twa.open_id = #{openId}
+    </select>
+
+
+    <insert id="insertWechatAuth" parameterType="com.zxc.o2o.entity.WechatAuth"
+    useGeneratedKeys="true" keyProperty="wechatAuthId" keyColumn="wechat_auth_id">
+       INSERT INTO
+	   tb_wechat_auth(user_id,open_id,create_time)
+		VALUES
+		(#{personInfo.userId},#{openId},#{createTime})
+    </insert>
+</mapper>

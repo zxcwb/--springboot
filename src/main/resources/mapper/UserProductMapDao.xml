@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zxc.o2o.dao.UserProductMapDao">
+    <resultMap id="userProductResultMap" type="com.zxc.o2o.entity.UserProductMap">
+        <id column="user_product_id" property="userProductId"/>
+        <result column="create_time" property="createTime"/>
+        <result column="point" property="point"/>
+        <association property="user" column="user_id" javaType="com.zxc.o2o.entity.PersonInfo">
+            <id property="userId" column="user_id"/>
+            <result property="name" column="name"/>
+        </association>
+        <association property="product" column="product_id" javaType="com.zxc.o2o.entity.Product">
+            <id property="productId" column="product_id"/>
+            <result column="product_name" property="productName"/>
+        </association>
+        <association property="shop" column="shop_id" javaType="com.zxc.o2o.entity.Shop">
+            <id column="shop_id" property="shopId"/>
+            <result property="shopName" column="shop_name"/>
+        </association>
+        <association property="operator" column="operator_id" javaType="com.zxc.o2o.entity.PersonInfo">
+            <id column="operation_id" property="userId"/>
+            <result column="operator_name" property="name"/>
+        </association>
+    </resultMap>
+    <select id="queryUserProductMapList" resultMap="userProductResultMap">
+         select
+         tupm.user_award_id,
+         tupm.create_time,
+         tupm.point,
+         buyer.user_id,
+         buyer.name,
+         ts.shop_id,
+         ts.shop_name,
+         tp.product_id,
+         tp.product_name,
+         operation.user_id as operator_id,
+         operation.name as operator_name
+         from
+         tb_user_product_map tupm,
+         tb_person_info buyer,
+         tb_shop ts,
+         tb_product tp,
+         tb_person_info operation
+         <where>
+             tupm.user_id = buyer.user_id
+             and
+             tupm.shop_id = ts.shop_id
+             and
+             tupm.product_id = tp.product_id
+             and
+             tupm.operator_id = operation.user_id
+             <if test="userProductCondition.user != null and userProductCondition.user.userId != null">
+                 and tupm.user_id = #{userProductCondition.user.userId}
+             </if>
+             <if test="userProductCondition.shop != null and userProductCondition.shop.shopId != null">
+                 and tupm.shop_id = #{userProductCondition.shop.shopId}
+             </if>
+             <if test="userProductCondition.user != null and userProductCondition.user.name != null">
+                 and buyer.name like '%${userProductCondition.user.name}%'
+             </if>
+             <if test="userProductCondition.product != null and userProductCondition.product.productName != null">
+                 and tp.product_name like '%${userProductCondition.product.productName}%'
+             </if>
+             <if test="userProductCondition.createTime != null">
+                 and tupm.create_time > #{userProductCondition.createTime}
+             </if>
+         </where>
+         order by tupm.create_time desc
+         limit #{rowIndex},#{pageSize};
+    </select>
+    
+    <select id="queryUserProductMapCount" resultType="int">
+        select count(1)
+        from
+        tb_user_product_map tupm,
+        tb_person_info buyer,
+        tb_shop ts,
+        tb_product tp,
+        tb_person_info operation
+        <where>
+            tupm.user_id = buyer.user_id
+            and
+            tupm.shop_id = ts.shop_id
+            and
+            tupm.product_id = tp.product_id
+            and
+            tupm.operator_id = operation.user_id
+            <if test="userProductCondition.user != null and userProductCondition.user.userId != null">
+                and tupm.user_id = #{userProductCondition.user.userId}
+            </if>
+            <if test="userProductCondition.shop != null and userProductCondition.shop.shopId != null">
+                and tupm.shop_id = #{userProductCondition.shop.shopId}
+            </if>
+            <if test="userProductCondition.user != null and userProductCondition.user.name != null">
+                and buyer.name like '%${userProductCondition.user.name}%'
+            </if>
+            <if test="userProductCondition.product != null and userProductCondition.product.productName != null">
+                and tp.product_name like '%${userProductCondition.product.productName}%'
+            </if>
+            <if test="userProductCondition.createTime != null">
+                and tupm.create_time > #{userProductCondition.createTime}
+            </if>
+        </where>
+    </select>
+
+    <insert id="insertUserProductMap" parameterType="com.zxc.o2o.entity.UserProductMap"
+            useGeneratedKeys="true" keyProperty="userProductId" keyColumn="user_product_id">
+            insert into
+            tb_user_product_map(user_id,product_id,shop_id,operator_id,create_time,point)
+            values (#{user.userId},#{product.productId},#{shop.shopId},#{operator.userId},#{createTime},#{point})
+    </insert>
+</mapper>

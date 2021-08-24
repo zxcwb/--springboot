@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zxc.o2o.dao.ShopCategoryDao">
+   <!-- <resultMap id="queryShopCategoryMap" type="com.zxc.o2o.entity.ShopCategory">
+          <id property="shopCategoryId" column="shop_category_id"></id>
+          <result property="shopCategoryName" column="shop_category_name"></result>
+          <result property="shopCategoryDesc" column="shop_category_desc"></result>
+          <result property="shopCategoryImg" column="shop_category_img"></result>
+          <result property="priority" column="priority"></result>
+          <result property="createTime" column="create_time"></result>
+          <result property="lastEditTime" column="last_edit_time"></result>
+          <result property="parent" column="parent_id"></result>
+    </resultMap>-->
+    <select id="queryShopCategory" resultType="com.zxc.o2o.entity.ShopCategory">
+        SELECT
+        shop_category_id,
+        shop_category_name,
+        shop_category_desc,
+        shop_category_img,
+        priority,
+        create_time,
+        last_edit_time,
+        parent_id
+        FROM
+        tb_shop_category
+        <where>
+            <if test="shopCategoryCondition == null">
+                and parent_id is null
+            </if>
+            <if test="shopCategoryCondition != null">
+                and parent_id is not null
+            </if>
+            <if test="shopCategoryCondition != null and shopCategoryCondition.parent != null">
+                and parent_id = #{shopCategoryCondition.parent.shopCategoryId}
+            </if>
+        </where>
+        ORDER BY
+        priority DESC
+    </select>
+</mapper>

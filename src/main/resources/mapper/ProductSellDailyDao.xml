@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zxc.o2o.dao.ProductSellDailyDao">
+    <resultMap id="productSellDailyResultMap" type="com.zxc.o2o.entity.ProductSellDaily">
+        <id property="productSellDailyId" column="product_sell_daily_id"/>
+        <result column="create_time" property="createTime"/>
+        <result column="total" property="total"/>
+        <association property="shop" column="shop_id" javaType="com.zxc.o2o.entity.Shop">
+            <id column="shop_id" property="shopId"/>
+            <id column="shop_name" property="shopName"/>
+        </association>
+        <association property="product" column="product_id" javaType="com.zxc.o2o.entity.Product">
+            <id column="product_id" property="productId"/>
+            <result column="product_name" property="productName"/>
+        </association>
+    </resultMap>
+    <select id="queryProductSellDailyList" resultMap="productSellDailyResultMap">
+        select
+        tpsd.product_sell_daily_id,
+        tpsd.create_time,
+        tpsd.total,
+        ts.shop_id,
+        ts.shop_name,
+        tp.product_id,
+        tp.product_name
+        from
+        tb_product_sell_daily tpsd,
+        tb_product tp,
+        tb_shop ts
+        <where>
+           tpsd.shop_id = ts.shop_id
+           and
+           tpsd.product_id = tp.product_id
+           <if test="productSellDailyCondition.shop != null and productSellDailyCondition.shop.shopId != null">
+               and tpsd.shop_id = #{productSellDailyCondition.shop.shopId}
+           </if>
+           <if test="productSellDailyCondition.product != null and productSellDailyCondition.product.productName != null">
+               and tp.product_name like '%#{productSellDailyCondition.product.productName}%'
+           </if>
+           <if test="beginTime!=null and endTime!=null">
+               and date_format(tpsd.create_time,'%Y-%m-%d')
+               between date_format(#{beginTime},'%Y-%m-%d')
+               and date_format(#{endTime},'%Y-%m-%d')
+           </if>
+            <if test="beginTime!=null and endTime==null">
+                and date_format(tpsd.create_time,'%Y-%m-%d') &gt;=
+                date_format(#{beginTime},'%Y-%m-%d')
+            </if>
+            <if test="beginTime==null and endTime!=null">
+                and date_format(tpsd.create_time,'%Y-%m-%d') &lt;=
+                date_format(#{endTime},'%Y-%m-%d')
+            </if>
+        </where>
+        order by tpsd.product_id,tpsd.create_time;
+    </select>
+
+    <!--<insert id="insertProductSellDaily" parameterType="com.zxc.o2o.entity.ProductSellDaily">
+        insert into
+        tb_product_sell_daily(product_id,shop_id,create_time,total,end_time)
+        values(#{product.productId},#{shop.shopId},#{createTime},#{total},#{endTime})
+    </insert>-->
+    <insert id="insertProductSellDaily" parameterType="com.zxc.o2o.entity.ProductSellDaily">
+        insert
+        into
+        tb_product_sell_daily(product_id,shop_id,create_time,total)
+        (
+         select
+         product_id,shop_id,create_time,count(product_id) as total from
+         tb_user_product_map
+         where date_format(create_time,'%Y-%m-%d') =
+         date_sub(curdate(),interval 1
+         day) GROUP BY product_id)
+    </insert>
+
+    <insert id="insertDefaultProductSellDaily">
+        insert into
+        tb_product_sell_daily(product_id,shop_id,create_time,total)
+        (
+        select
+        p.product_id,p.shop_id,date_sub(curdate(),interval 1 day),0 as total
+        from tb_product p
+        where
+        p.product_id not in
+        (select product_id from tb_product_sell_daily where date_format(create_time,'%Y-%m-%d') =
+        date_sub(curdate(),interval 1 day))
+        )
+    </insert>
+</mapper>

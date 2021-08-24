@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zxc.o2o.dao.UserAwardMapDao">
+    
+    <resultMap id="userAwardResultMap" type="com.zxc.o2o.entity.UserAwardMap">
+        <id column="user_award_id" property="userAwardId"/>
+        <result column="create_time" property="createTime"/>
+        <result column="used_status" property="usedStatus"/>
+        <result column="point" property="point"/>
+        <association property="user" column="user_id" javaType="com.zxc.o2o.entity.PersonInfo">
+            <id column="user_id" property="userId"/>
+            <result column="name" property="name"/>
+        </association>
+        <association property="award" column="award_id" javaType="com.zxc.o2o.entity.Award">
+            <id column="award_id" property="awardId"/>
+            <result column="award_name" property="awardName"/>
+        </association>
+        <association property="shop" column="shop_id" javaType="com.zxc.o2o.entity.Shop">
+            <id column="shop_id" property="shopId"/>
+            <result column="shop_name" property="shopName"/>
+        </association>
+        <association property="operator" column="operator_id" javaType="com.zxc.o2o.entity.PersonInfo">
+            <id column="operator_id" property="userId"/>
+            <result column="operator_name" property="name"/>
+        </association>
+    </resultMap>
+    
+    <select id="queryUserAwardMapList" resultMap="userAwardResultMap">
+       select
+       tuam.user_award_id,
+       tuam.create_time,
+       tuam.used_status,
+       tuam.point,
+       buyer.user_id,
+       buyer.name,
+       ts.shop_id,
+       ts.shop_name,
+       ta.award_id,
+       ta.award_name,
+       /*这里有问题*/
+       operator.user_id AS operator_id,
+       operator.name AS operator_name
+       from
+       tb_user_award_map tuam,
+       tb_person_info buyer,
+       tb_shop ts,
+       tb_award ta,
+       tb_person_info operator
+       <where>
+           tuam.user_id=buyer.user_id
+           and
+           tuam.shop_id=ts.shop_id
+           and
+           tuam.award_id=ta.award_id
+           and
+           /*这里有问题*/
+           tuam.operator_id = operator.user_id
+       <if test="userAwardCondition.user != null and userAwardCondition.user.userId != null">
+           and tuam.user_id = #{userAwardCondition.user.userId}
+       </if>
+       <if test="userAwardCondition.shop != null and userAwardCondition.shop.shopId != null">
+           and tuam.shop_id = #{userAwardCondition.shop.shopId}
+       </if>
+       <if test="userAwardCondition.user != null and userAwardCondition.user.name != null">
+           and buyer.name like '%${userAwardCondition.user.name}%'
+       </if>
+       <if test="userAwardCondition.award != null and userAwardCondition.award.awardName != null">
+           and ta.award_name like '%${userAwardCondition.award.awardName}%'
+       </if>
+       <if test="userAwardCondition.usedStatus != null">
+           and tuam.used_status = #{userAwardCondition.usedStatus}
+       </if>
+       </where>
+       order by tuam.create_time desc
+       limit #{rowIndex},#{pageSize};
+    </select>
+    
+    <select id="queryUserAwardMapCount" resultType="int">
+        select count(1)
+        from
+        tb_user_award_map tuam,
+        tb_person_info buyer,
+        tb_shop ts,
+        tb_award ta,
+        tb_person_info operator
+        <where>
+            tuam.user_id=buyer.user_id
+            and
+            tuam.shop_id=ts.shop_id
+            and
+            tuam.award_id=ta.award_id
+            and
+            /*这里有问题*/
+            tuam.operator_id = operator.user_id
+            <if test="userAwardCondition.user != null and userAwardCondition.user.userId != null">
+                and tuam.user_id = #{userAwardCondition.user.userId}
+            </if>
+            <if test="userAwardCondition.shop != null and userAwardCondition.shop.shopId != null">
+                and tuam.shop_id = #{userAwardCondition.shop.shopId}
+            </if>
+            <if test="userAwardCondition.user != null and userAwardCondition.user.name != null">
+                and buyer.name like '%${userAwardCondition.user.name}%'
+            </if>
+            <if test="userAwardCondition.award != null and userAwardCondition.award.awardName != null">
+                and ta.award_name like '%${userAwardCondition.award.awardName}%'
+            </if>
+            <if test="userAwardCondition.usedStatus != null">
+                and tuam.used_status = #{userAwardCondition.usedStatus}
+            </if>
+        </where>
+    </select>
+
+    <select id="queryUserAwardMapById" resultMap="userAwardResultMap">
+        select
+        tuam.user_award_id,
+        tuam.create_time,
+        tuam.used_status,
+        tuam.point,
+        buyer.user_id,
+        buyer.name,
+        ts.shop_id,
+        ts.shop_name,
+        ta.award_id,
+        ta.award_name,
+        /*这里有问题*/
+        operator.user_id AS operator_id,
+        operator.name AS operator_name
+        from
+        tb_user_award_map tuam,
+        tb_person_info buyer,
+        tb_shop ts,
+        tb_award ta,
+        tb_person_info operator
+        where
+        tuam.user_id=buyer.user_id
+        and
+        tuam.shop_id=ts.shop_id
+        and
+        tuam.award_id = ta.award_id
+        and
+        /*这里有问题*/
+        tuam.user_id = operator.user_id
+        and
+        user_award_id = #{userAwardId}
+    </select>
+
+    <insert id="insertUserAwardMap" parameterType="com.zxc.o2o.entity.UserAwardMap"
+            useGeneratedKeys="true" keyProperty="userAwardId" keyColumn="user_award_id">
+        insert into tb_user_award_map(user_id,award_id,shop_id,operator_id,create_time,used_status,point)
+        values(#{user.userId},#{award.awardId},#{shop.shopId},#{operator.userId},#{createTime},#{usedStatus},#{point})
+    </insert>
+
+    <update id="updateUserAwardMap" parameterType="com.zxc.o2o.entity.UserAwardMap" useGeneratedKeys="true"
+            keyColumn="user_award_id" keyProperty="userAwardId">
+        update
+        tb_user_award_map
+        set
+        used_status = #{usedStatus}
+        where
+        user_award_id = #{userAwardId}
+        and
+        user_id = #{user.userId}
+    </update>
+</mapper>

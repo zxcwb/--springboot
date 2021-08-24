@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zxc.o2o.dao.ProductCategoryDao">
+    <select id="queryProductCategoryList" resultType="com.zxc.o2o.entity.ProductCategory" parameterType="Long">
+           select
+           product_category_id,
+           product_category_name,
+           priority,
+           create_time,
+           shop_id
+           from
+           tb_product_category
+           <where>
+                  <if test="shopId != null">
+                     shop_id = #{shopId}
+                  </if>
+           </where>
+           order by
+           priority desc
+    </select>
+
+       <select id="queryProductCategoryListToAddProduct" resultType="com.zxc.o2o.entity.ProductCategory">
+              select
+              product_category_id,
+              product_category_name,
+              priority,
+              create_time,
+              shop_id
+              from
+              tb_product_category
+              order by
+              priority desc
+       </select>
+
+       <insert id="batchInsertProductCategory" parameterType="java.util.List">
+              <selectKey resultType="Long" keyProperty="product_category_id"
+                         order="AFTER">
+                     SELECT LAST_INSERT_ID()
+              </selectKey>
+              INSERT INTO
+              tb_product_category(product_category_name,priority,create_time,shop_id)
+              VALUES
+              <foreach collection="list" item="productCategory" index="index"
+                       separator=",">
+                     (
+                     #{productCategory.productCategoryName},
+                     #{productCategory.priority},
+                     #{productCategory.createTime},
+                     #{productCategory.shopId}
+                     )
+              </foreach>
+       </insert>
+
+       <delete id="deleteProductCategory">
+              delete from
+              tb_product_category
+              where
+              product_category_id = #{productCategoryId}
+              and shop_id = #{shopId}
+       </delete>
+</mapper>

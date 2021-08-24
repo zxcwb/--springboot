@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zxc.o2o.dao.AwardDao">
+    <select id="queryAwardList" resultType="com.zxc.o2o.entity.Award">
+        select
+        award_id,
+        award_name,
+        award_desc,
+        award_img,
+        point,
+        priority,
+        create_time,
+        expire_time,
+        last_edit_time,
+        enable_status,
+        shop_id
+        from tb_award
+        <where>
+            <if test="awardCondition.awardName != null">
+                and award_name like '%${awardCondition.awardName}%'
+            </if>
+            <if test="awardCondition.shopId != null">
+               and shop_id = #{awardCondition.shopId}
+            </if>
+            <if test="awardCondition.enableStatus != null">
+                and enable_status = #{awardCondition.enableStatus}
+            </if>
+        </where>
+        order by
+        priority desc
+        limit #{rowIndex},#{pageSize};
+    </select>
+
+    <select id="queryAwardCount" resultType="int">
+        select count(1) from tb_award /*查询所有*/
+        <where>
+            <if test="awardCondition.awardName != null">
+                and award_name like '%${awardCondition.awardName}%'
+            </if>
+            <if test="awardCondition.shopId != null">
+                and shop_id = #{awardCondition.shopId}
+            </if>
+            <if test="awardCondition.enableStatus != null">
+                and enable_status = #{awardCondition.enableStatus}
+            </if>
+        </where>
+    </select>
+
+    <select id="queryAwardByAwardById" resultType="com.zxc.o2o.entity.Award" parameterType="long">
+        select
+        award_id,
+        award_name,
+        award_desc,
+        award_img,
+        point,
+        priority,
+        create_time,
+        expire_time,
+        last_edit_time,
+        enable_status,
+        shop_id
+        from tb_award
+        where award_id = #{awardId}
+    </select>
+
+    <insert id="insertAward" parameterType="com.zxc.o2o.entity.Award" useGeneratedKeys="true"
+            keyProperty="awardId" keyColumn="award_id" >
+        insert into
+        tb_award(award_name,award_desc,award_img,point,priority,create_time,expire_time,
+        last_edit_time,enable_status,shop_id)
+        values (#{awardName},#{awardDesc},#{awardImg},#{point},#{priority},
+        #{createTime},#{expireTime},#{lastEditTime},#{enableStatus},#{shopId})
+    </insert>
+
+    <update id="updateAward" parameterType="com.zxc.o2o.entity.Award" keyProperty="award_id"
+            useGeneratedKeys="true">
+        update tb_award
+        <set>
+            <if test="awardName != null">award_name=#{awardName},</if>
+            <if test="awardDesc != null">award_desc=#{awardDesc},</if>
+            <if test="awardImg != null">award_img= #{awardImg},</if>
+            <if test="point != null">point= #{point},</if>
+            <if test="priority != null">priority=#{priority},</if>
+            <if test="enableStatus != null">enable_status=#{enableStatus},</if>
+            <if test="lastEditTime != null">last_edit_time=#{lastEditTime}</if>
+        </set>
+        where award_id = #{awardId}
+        and shop_id = #{shopId}
+    </update>
+
+    <delete id="deleteAward">
+        delete
+        from tb_award
+        where award_id = #{awardId}
+        shop_id = #{shopId}
+    </delete>
+</mapper>
